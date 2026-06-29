@@ -1,4 +1,4 @@
-
+"""
 PO PDF Extractor
 -----------------
 Upload a Purchase Order PDF (text-based OR scanned), let Claude (AI) read it,
@@ -48,27 +48,36 @@ FIELD_LABELS = {
 
 MODEL = "claude-sonnet-4-6"
 
-EXTRACTION_PROMPT = """You are reading a Purchase Order (PO) document. Extract the following fields for EVERY line item on the PO.
-
-Fields to extract for each line item row:
-- record_no: the line item number (e.g. 1, 2, 3...)
-- item_code: the item/material code for that line (e.g. CH14100-1-338, KGS201-035)
-- part_name: the description/name of the part on that line (e.g. INSULATOR, HEAT RESISTANCE PAINT)
-- part_no: the secondary part number on that line, if shown (e.g. Z2250B180E). Leave blank if not present.
-- supplier: the vendor/supplier company name (this is usually the SAME for every line item on one PO - it's the company name in the letterhead/address block, NOT the buyer's own company)
-- total_amount: the total amount for that line item (the final number/amount column, usually rightmost)
-- requester: the name of the person who requested/raised the PO (often near the PO number/date block, sometimes labeled or just a first name)
-- po_date: the PO date (the order date, NOT a delivery date - usually near the PO number)
-
-Important rules:
-- Return ONE entry per line item row in the document.
-- po_date, supplier, and requester are typically the same across all line items in a single PO - repeat them on every row.
-- If a field cannot be found for a given row, use an empty string "" rather than guessing.
-- Do not include charges/notes lines as line items unless they have their own item code - but DO include lines like "DELIVERY CHARGES" or "HARDENER" if they appear in the same numbered item list as other items.
-- Return ONLY valid JSON, no other text, no markdown code fences. Format:
-
-{"line_items": [{"record_no": "1", "item_code": "...", "part_name": "...", "part_no": "...", "supplier": "...", "total_amount": "...", "requester": "...", "po_date": "..."}, ...]}
-"""
+EXTRACTION_PROMPT = (
+    "You are reading a Purchase Order (PO) document. "
+    "Extract the following fields for EVERY line item on the PO.\n\n"
+    "Fields to extract for each line item row:\n"
+    "- record_no: the line item number (an integer such as one, two, three, and so on)\n"
+    "- item_code: the item or material code for that line\n"
+    "- part_name: the description or name of the part on that line\n"
+    "- part_no: the secondary part number on that line, if shown. Leave blank if not present.\n"
+    "- supplier: the vendor or supplier company name (this is usually the SAME for every "
+    "line item on one PO - it is the company name in the letterhead or address block, "
+    "NOT the buyer's own company)\n"
+    "- total_amount: the total amount for that line item (the final number in the amount "
+    "column, usually the rightmost column)\n"
+    "- requester: the name of the person who requested or raised the PO (often near the "
+    "PO number or date block, sometimes labeled or just a first name)\n"
+    "- po_date: the PO date (the order date, NOT a delivery date - usually near the PO number)\n\n"
+    "Important rules:\n"
+    "- Return ONE entry per line item row in the document.\n"
+    "- po_date, supplier, and requester are typically the same across all line items in a "
+    "single PO - repeat them on every row.\n"
+    "- If a field cannot be found for a given row, use an empty string rather than guessing.\n"
+    "- Do not include charges or notes lines as line items unless they have their own item "
+    "code - but DO include lines such as delivery charges or hardener if they appear in the "
+    "same numbered item list as other items.\n"
+    "- Return ONLY valid JSON, no other text, no markdown code fences.\n"
+    "- The JSON must have this exact shape: a top-level object with a key named line_items, "
+    "whose value is an array of objects. Each object must have these exact keys: record_no, "
+    "item_code, part_name, part_no, supplier, total_amount, requester, po_date. "
+    "All values must be strings (wrap numbers in quotes too)."
+)
 
 
 # ---------- EXTRACTION HELPERS ----------
@@ -207,7 +216,7 @@ def build_excel(df: pd.DataFrame) -> bytes:
 st.set_page_config(page_title="PO PDF Extractor", page_icon="📄", layout="wide")
 
 st.title("📄 PO PDF Extractor")
-st.caption("Upload a Purchase Order PDF — works for both text PDFs and scanned PDFs. AI reads and extracts the fields automatically.")
+st.caption("Upload a Purchase Order PDF - works for both text PDFs and scanned PDFs. AI reads and extracts the fields automatically.")
 
 # API key handling: prefer Streamlit secrets (set this up in Streamlit Cloud settings)
 api_key = st.secrets.get("ANTHROPIC_API_KEY", None)
@@ -233,7 +242,7 @@ if uploaded_file and api_key:
                 st.stop()
 
     method = st.session_state.get("extraction_method", "")
-    st.success(f"Extracted {len(st.session_state.extracted_rows)} line item(s) — detected as: **{method}**")
+    st.success(f"Extracted {len(st.session_state.extracted_rows)} line item(s) - detected as: **{method}**")
 
     st.subheader("Review & edit before exporting")
     st.caption("Double-click any cell to fix mistakes (especially likely on scanned PDFs).")
