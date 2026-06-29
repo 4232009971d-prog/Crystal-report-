@@ -1,0 +1,6 @@
+streamlit
+pandas
+pdfplumber
+pdf2image
+openpyxl
+anthropic
